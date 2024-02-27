@@ -378,12 +378,12 @@ _MAPPING_CONTAINERS = (dict, os._Environ, MappingProxyType, UserDict)
 
 def is_expandable(obj: Any) -> bool:
     """Check if an object may be expanded by pretty print."""
-    return (
+    return ((
         _safe_isinstance(obj, _CONTAINERS)
         or (is_dataclass(obj))
         or (hasattr(obj, "__rich_repr__"))
         or _is_attr_object(obj)
-    ) and not isclass(obj)
+    ) and not isclass(obj)) or (isclass(obj) and hasattr(obj, '__rich_class_repr__'))
 
 
 @dataclass
@@ -639,6 +639,8 @@ def traverse(
             try:
                 if hasattr(obj, "__rich_repr__") and not isclass(obj):
                     rich_repr_result = obj.__rich_repr__()
+                elif hasattr(obj, "__rich_class_repr__") and isclass(obj):
+                    rich_repr_result = obj.__rich_class_repr__()
             except Exception:
                 pass
 
