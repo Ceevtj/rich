@@ -1,9 +1,11 @@
 import configparser
+import os.path
 from typing import Dict, List, IO, Mapping, Optional
 
 from .default_styles import DEFAULT_STYLES
 from .style import Style, StyleType
 
+DEFAULT_THEME_CONFIG_PATH = os.environ["XDG_CONFIG_HOME"] + "/rich/theme_config.cfg" # Relative to XDG_CONFIG_HOME
 
 class Theme:
     """A container for style information, used by :class:`~rich.console.Console`.
@@ -16,16 +18,21 @@ class Theme:
     styles: Dict[str, Style]
 
     def __init__(
-        self, styles: Optional[Mapping[str, StyleType]] = None, inherit: bool = True
+        self, styles: Optional[Mapping[str, StyleType]] = None, inherit: bool = True, use_config = False, config = DEFAULT_THEME_CONFIG_PATH
     ):
-        self.styles = DEFAULT_STYLES.copy() if inherit else {}
-        if styles is not None:
-            self.styles.update(
-                {
-                    name: style if isinstance(style, Style) else Style.parse(style)
-                    for name, style in styles.items()
-                }
-            )
+        if use_config:
+            assert(os.path.isfile(config))
+            with open(config, "r") as cfg_file:
+                self.styles = Theme.from_file(cfg_file, inherit=False).styles
+        else:
+            self.styles = DEFAULT_STYLES.copy() if inherit else {}
+            if styles is not None:
+                self.styles.update(
+                    {
+                        name: style if isinstance(style, Style) else Style.parse(style)
+                        for name, style in styles.items()
+                    }
+                )
 
     @property
     def config(self) -> str:
@@ -52,7 +59,7 @@ class Theme:
         config = configparser.ConfigParser()
         config.read_file(config_file, source=source)
         styles = {name: Style.parse(value) for name, value in config.items("styles")}
-        theme = Theme(styles, inherit=inherit)
+        theme = Theme(styles, inherit=inherit, use_config=False)
         return theme
 
     @classmethod
