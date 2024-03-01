@@ -51,3 +51,13 @@ def test_theme_stack():
     assert stack.get("warning") == Style.parse("red")
     with pytest.raises(ThemeStackError):
         stack.pop_theme()
+
+
+def test_default_theme_not_empty():
+    theme = Theme({"warning": "red"})
+    with tempfile.TemporaryDirectory("richtheme") as name:
+        filename = os.path.join(name, "theme.cfg")
+        with open(filename, "wt") as write_theme:
+            write_theme.write(theme.config)
+        theme2 = Theme(inherit=False, use_config=True, config=filename)
+        assert theme2.styles
