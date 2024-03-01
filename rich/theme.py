@@ -18,10 +18,13 @@ class Theme:
     styles: Dict[str, Style]
 
     def __init__(
-        self, styles: Optional[Mapping[str, StyleType]] = None, inherit: bool = True, use_config = False, config = DEFAULT_THEME_CONFIG_PATH
+        self,
+        styles: Optional[Mapping[str, StyleType]] = None,
+        inherit: bool = True, 
+        config = DEFAULT_THEME_CONFIG_PATH, 
+        use_config = True
     ):
-        if use_config:
-            assert(os.path.isfile(config))
+        if os.path.isfile(config) and os.stat(config).st_size != 0 and use_config:
             with open(config, "r") as cfg_file:
                 self.styles = Theme.from_file(cfg_file, inherit=False).styles
         else:
