@@ -1,5 +1,9 @@
 import configparser
+import os
+import toml
 from typing import Dict, List, IO, Mapping, Optional
+
+from rich.global_config import load_global_config
 
 from .default_styles import DEFAULT_STYLES
 from .style import Style, StyleType
@@ -16,9 +20,21 @@ class Theme:
     styles: Dict[str, Style]
 
     def __init__(
-        self, styles: Optional[Mapping[str, StyleType]] = None, inherit: bool = True
+        self,
+        styles: Optional[Mapping[str, StyleType]] = None,
+        inherit: bool = True,
     ):
-        self.styles = DEFAULT_STYLES.copy() if inherit else {}
+        config = load_global_config()
+        default_styles = DEFAULT_STYLES.copy()
+        if config is not None:
+            if "theme" in config and "common" in config["theme"]:
+                default_styles.update(
+                    {
+                        name: style if isinstance(style, Style) else Style.parse(style)
+                        for name, style in config["theme"]["common"].items()
+                    }
+                )
+        self.styles = default_styles if inherit else {}
         if styles is not None:
             self.styles.update(
                 {

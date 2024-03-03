@@ -1,0 +1,6 @@
+[theme.common]
+warning = "green"
+
+[theme.terminal]
+background = [1, 2, 3]
+foreground = [4, 5, 6]

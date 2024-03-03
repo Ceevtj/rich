@@ -6,6 +6,7 @@ import pytest
 
 from rich.style import Style
 from rich.theme import Theme, ThemeStack, ThemeStackError
+from rich.default_styles import DEFAULT_STYLES
 
 
 def test_inherit():
@@ -51,3 +52,17 @@ def test_theme_stack():
     assert stack.get("warning") == Style.parse("red")
     with pytest.raises(ThemeStackError):
         stack.pop_theme()
+
+
+def test_common_global_config():
+    os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
+    theme = Theme()
+    stack = ThemeStack(theme)
+    assert stack.get("warning") == Style.parse("green")
+
+
+def test_global_no_config():
+    os.environ["RICH_NO_GLOBAL_CONFIG"] = ""
+    os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
+    theme = Theme()
+    assert theme.styles == DEFAULT_STYLES
