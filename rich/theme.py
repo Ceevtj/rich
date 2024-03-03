@@ -3,6 +3,8 @@ import os
 import toml
 from typing import Dict, List, IO, Mapping, Optional
 
+from rich.global_config import load_global_config
+
 from .default_styles import DEFAULT_STYLES
 from .style import Style, StyleType
 
@@ -22,7 +24,17 @@ class Theme:
         styles: Optional[Mapping[str, StyleType]] = None,
         inherit: bool = True,
     ):
-        self.styles = Theme.load_global_config() if inherit else {}
+        config = load_global_config()
+        default_styles = DEFAULT_STYLES.copy()
+        if config is not None:
+            if "theme" in config and "common" in config["theme"]:
+                default_styles.update(
+                    {
+                        name: style if isinstance(style, Style) else Style.parse(style)
+                        for name, style in config["theme"]["common"].items()
+                    }
+                )
+        self.styles = default_styles if inherit else {}
         if styles is not None:
             self.styles.update(
                 {
@@ -30,29 +42,6 @@ class Theme:
                     for name, style in styles.items()
                 }
             )
-
-    @staticmethod
-    def load_global_config() -> Dict[str, Style]:
-        styles = DEFAULT_STYLES.copy()
-        config_file = None
-        if "RICH_NO_GLOBAL_CONFIG" in os.environ:
-            return styles
-        if "RICH_THEME_FILE" in os.environ:
-            config_file = os.environ.get("RICH_THEME_FILE")
-        elif "XDG_CONFIG_HOME" in os.environ:
-            config_file = os.environ.get("XDG_CONFIG_HOME") + "/rich/config.toml"
-        else:
-            return styles
-
-        config = toml.load(config_file)["theme"]
-        styles.update(
-            {
-                name: style if isinstance(style, Style) else Style.parse(style)
-                for name, style in config.items()
-            }
-        )
-
-        return styles
 
     @property
     def config(self) -> str:

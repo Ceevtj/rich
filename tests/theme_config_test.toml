@@ -1,5 +1,6 @@
-[theme]
-warning = "red"
+[theme.common]
+warning = "green"
 
-[term]
-as = 1
+[theme.terminal]
+background = [1, 2, 3]
+foreground = [4, 5, 6]

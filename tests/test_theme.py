@@ -58,7 +58,7 @@ def test_global_config():
     os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
     theme = Theme()
     stack = ThemeStack(theme)
-    assert stack.get("warning") == Style.parse("red")
+    assert stack.get("warning") == Style.parse("green")
 
 
 def test_global_no_config():

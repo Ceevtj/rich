@@ -1,7 +1,11 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TypedDict
+
+from rich.global_config import load_global_config
 
 from .color_triplet import ColorTriplet
 from .palette import Palette
+
+from os import environ
 
 _ColorTuple = Tuple[int, int, int]
 
@@ -29,10 +33,20 @@ class TerminalTheme:
         self.ansi_colors = Palette(normal + (bright or normal))
 
 
-DEFAULT_TERMINAL_THEME = TerminalTheme(
-    (255, 255, 255),
-    (0, 0, 0),
-    [
+TerminalThemeRaw = TypedDict(
+    "TerminalThemeRaw",
+    {
+        "background": _ColorTuple,
+        "foreground": _ColorTuple,
+        "normal": List[_ColorTuple],
+        "bright": Optional[List[_ColorTuple]],
+    },
+)
+
+DEFAULT_TERMINAL_THEME_RAW: TerminalThemeRaw = {
+    "background": (255, 255, 255),
+    "foreground": (0, 0, 0),
+    "normal": [
         (0, 0, 0),
         (128, 0, 0),
         (0, 128, 0),
@@ -42,7 +56,7 @@ DEFAULT_TERMINAL_THEME = TerminalTheme(
         (0, 128, 128),
         (192, 192, 192),
     ],
-    [
+    "bright": [
         (128, 128, 128),
         (255, 0, 0),
         (0, 255, 0),
@@ -52,7 +66,50 @@ DEFAULT_TERMINAL_THEME = TerminalTheme(
         (0, 255, 255),
         (255, 255, 255),
     ],
-)
+}
+
+
+def load_default_terminal_theme() -> TerminalTheme:
+    config = load_global_config()
+    terminal_config = None
+    if config is not None:
+        if "theme" in config and "terminal" in config["theme"]:
+            terminal_config = config["theme"]["terminal"]
+    if terminal_config is None:
+        return TerminalTheme(
+            DEFAULT_TERMINAL_THEME_RAW["background"],
+            DEFAULT_TERMINAL_THEME_RAW["foreground"],
+            DEFAULT_TERMINAL_THEME_RAW["normal"],
+            DEFAULT_TERMINAL_THEME_RAW["bright"],
+        )
+
+    else:
+        return TerminalTheme(
+            (
+                terminal_config["background"]
+                if "background" in terminal_config
+                else DEFAULT_TERMINAL_THEME_RAW["background"]
+            ),
+            (
+                terminal_config["foreground"]
+                if "foreground" in terminal_config
+                else DEFAULT_TERMINAL_THEME_RAW["foreground"]
+            ),
+            (
+                terminal_config["normal"]
+                if "normal" in terminal_config
+                else DEFAULT_TERMINAL_THEME_RAW["normal"]
+            ),
+            (
+                terminal_config["bright"]
+                if "bright" in terminal_config
+                else DEFAULT_TERMINAL_THEME_RAW["bright"]
+            ),
+        )
+
+
+DEFAULT_TERMINAL_THEME = load_default_terminal_theme()
+
 
 MONOKAI = TerminalTheme(
     (12, 12, 12),
