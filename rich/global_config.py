@@ -8,6 +8,9 @@ DEFAULT_CONFIG_PATH = "/rich/config.toml"
 
 
 def load_global_config() -> Optional[Dict[str, Any]]:
+    """
+    Load the global config file.
+    """
     config_file = None
     if "RICH_NO_GLOBAL_CONFIG" in os.environ:
         return None

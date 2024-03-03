@@ -70,6 +70,10 @@ DEFAULT_TERMINAL_THEME_RAW: TerminalThemeRaw = {
 
 
 def load_default_terminal_theme() -> TerminalTheme:
+    """
+    Load the default terminal theme from the global config.
+    """
+
     config = load_global_config()
     terminal_config = None
     if config is not None:

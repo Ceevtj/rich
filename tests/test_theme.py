@@ -54,7 +54,7 @@ def test_theme_stack():
         stack.pop_theme()
 
 
-def test_global_config():
+def test_common_global_config():
     os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
     theme = Theme()
     stack = ThemeStack(theme)
@@ -65,5 +65,4 @@ def test_global_no_config():
     os.environ["RICH_NO_GLOBAL_CONFIG"] = ""
     os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
     theme = Theme()
-    stack = ThemeStack(theme)
     assert theme.styles == DEFAULT_STYLES

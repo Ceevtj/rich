@@ -4,7 +4,7 @@ from rich.global_config import load_global_config
 import rich.terminal_theme
 
 
-def test_global_config():
+def test_terminal_global_config():
     os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
     terminal_theme = importlib.reload(rich.terminal_theme)
 
