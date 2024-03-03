@@ -19,6 +19,6 @@ def load_global_config() -> Optional[Dict[str, Any]]:
     elif "XDG_CONFIG_HOME" in os.environ:
         config_file = os.environ["XDG_CONFIG_HOME"] + DEFAULT_CONFIG_PATH
 
-    if config_file is None:
+    if config_file is None or not os.path.isfile(config_file):
         return None
     return toml.load(config_file)
