@@ -8,6 +8,7 @@ from rich.style import Style
 from rich.theme import Theme, ThemeStack, ThemeStackError
 from rich.default_styles import DEFAULT_STYLES
 
+
 def test_inherit():
     theme = Theme({"warning": "red"})
     assert theme.styles["warning"] == Style(color="red")
@@ -53,26 +54,16 @@ def test_theme_stack():
         stack.pop_theme()
 
 
-def test_config_theme_not_empty():
-    theme = Theme({"warning": "red"})
-    with tempfile.TemporaryDirectory("richtheme") as name:
-        filename = os.path.join(name, "theme.cfg")
-        with open(filename, "wt") as write_theme:   
-            write_theme.write(theme.config)
-        theme2 = Theme(inherit=False, config=filename)
-        assert theme2.styles
+def test_global_config():
+    os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
+    theme = Theme()
+    stack = ThemeStack(theme)
+    assert stack.get("warning") == Style.parse("red")
 
 
-def test_default_theme_if_config_not_exists():
-    with tempfile.TemporaryDirectory("richtheme") as name:
-        filename = os.path.join(name, "themedoesnotexist.cfg")
-        theme = Theme(inherit=True, config=filename)
-        assert(theme.styles == DEFAULT_STYLES)
-
-
-def test_default_theme_if_config_empty():
-    with tempfile.TemporaryDirectory("richtheme") as name:
-        filename = os.path.join(name, "theme.cfg")
-        with open(filename, "x") as f:
-            theme = Theme(inherit=True, config=filename)
-            assert(theme.styles == DEFAULT_STYLES)
+def test_global_no_config():
+    os.environ["RICH_NO_GLOBAL_CONFIG"] = ""
+    os.environ["RICH_THEME_FILE"] = "tests/theme_config_test.toml"
+    theme = Theme()
+    stack = ThemeStack(theme)
+    assert theme.styles == DEFAULT_STYLES

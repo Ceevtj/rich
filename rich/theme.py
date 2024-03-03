@@ -1,11 +1,11 @@
 import configparser
-import os.path
+import os
+import toml
 from typing import Dict, List, IO, Mapping, Optional
 
 from .default_styles import DEFAULT_STYLES
 from .style import Style, StyleType
 
-DEFAULT_THEME_CONFIG_PATH = os.environ["XDG_CONFIG_HOME"] + "/rich/theme_config.cfg" # Relative to XDG_CONFIG_HOME
 
 class Theme:
     """A container for style information, used by :class:`~rich.console.Console`.
@@ -20,22 +20,39 @@ class Theme:
     def __init__(
         self,
         styles: Optional[Mapping[str, StyleType]] = None,
-        inherit: bool = True, 
-        config = DEFAULT_THEME_CONFIG_PATH, 
-        use_config = True
+        inherit: bool = True,
     ):
-        if os.path.isfile(config) and os.stat(config).st_size != 0 and use_config:
-            with open(config, "r") as cfg_file:
-                self.styles = Theme.from_file(cfg_file, inherit=False).styles
+        self.styles = Theme.load_global_config() if inherit else {}
+        if styles is not None:
+            self.styles.update(
+                {
+                    name: style if isinstance(style, Style) else Style.parse(style)
+                    for name, style in styles.items()
+                }
+            )
+
+    @staticmethod
+    def load_global_config() -> Dict[str, Style]:
+        styles = DEFAULT_STYLES.copy()
+        config_file = None
+        if "RICH_NO_GLOBAL_CONFIG" in os.environ:
+            return styles
+        if "RICH_THEME_FILE" in os.environ:
+            config_file = os.environ.get("RICH_THEME_FILE")
+        elif "XDG_CONFIG_HOME" in os.environ:
+            config_file = os.environ.get("XDG_CONFIG_HOME") + "/rich/config.toml"
         else:
-            self.styles = DEFAULT_STYLES.copy() if inherit else {}
-            if styles is not None:
-                self.styles.update(
-                    {
-                        name: style if isinstance(style, Style) else Style.parse(style)
-                        for name, style in styles.items()
-                    }
-                )
+            return styles
+
+        config = toml.load(config_file)["theme"]
+        styles.update(
+            {
+                name: style if isinstance(style, Style) else Style.parse(style)
+                for name, style in config.items()
+            }
+        )
+
+        return styles
 
     @property
     def config(self) -> str:
@@ -62,7 +79,7 @@ class Theme:
         config = configparser.ConfigParser()
         config.read_file(config_file, source=source)
         styles = {name: Style.parse(value) for name, value in config.items("styles")}
-        theme = Theme(styles, inherit=inherit, use_config=False)
+        theme = Theme(styles, inherit=inherit)
         return theme
 
     @classmethod
